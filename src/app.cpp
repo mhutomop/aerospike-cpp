@@ -3,11 +3,13 @@
 #include <iostream>
 #include <aerospike/aerospike.h>
 #include <aerospike/aerospike_key.h>
+#include <aerospike/as_exp.h>
 #include <aerospike/as_status.h>
 #include <aerospike/as_record.h>
 #include <aerospike/as_query.h>
 #include <aerospike/aerospike_info.h>
 #include <aerospike/aerospike_query.h>
+#include "exp_function/exp_function.h"
 
 int64_t get_time_in_us() {
     auto now = std::chrono::high_resolution_clock::now();
@@ -34,7 +36,7 @@ int main() {
     as_config_init(&config);
 
     // Set host and port
-    as_config_add_host(&config, "127.0.0.1", 3000); // Default Aerospike port
+    as_config_add_host(&config, "127.0.0.1", 43120); // Default Aerospike port
 
     aerospike_init(&as, &config);
 
@@ -51,25 +53,16 @@ int main() {
     const char *set = "books";
     const uint16_t number_of_records = 10000;
 
-    // Construct the CREATE INDEX command
-    // const char *bin_name = "author"; // Replace with your bin name
-    // const char *index_name = "idx_author";
-    // const char *index_type = "STRING"; // STRING, NUMERIC, or GEO2DSPHERE
+    // Create index
+    if (aerospike_index_string_create(&as, &err, nullptr, "test", "books", "author", "idx_author") != AEROSPIKE_OK) {
+        printf("aerospike_index_integer_create() returned %d - %s", err.code, err.message);
+        return false;
+    }
 
-    // char command[512];
-    // snprintf(command, sizeof(command),
-    //          "sindex-create:ns=%s;set=%s;indexname=%s;indexdata=%s,%s",
-    //          ns, set, index_name, bin_name, index_type);
-
-    // // Send the command to the cluster
-    // char *response = NULL;
-    // if (aerospike_info_any(&as, &err, NULL, command, &response) != AEROSPIKE_OK) {
-    //     fprintf(stderr, "Failed to create index: %s [%d]\n", err.message, err.code);
-    //     free(response); // Free the response if allocated
-    //     aerospike_close(&as, NULL);
-    //     aerospike_destroy(&as);
-    //     return -1;
-    // }
+    if (aerospike_index_string_create(&as, &err, nullptr, "test", "books", "title", "idx_title") != AEROSPIKE_OK) {
+        printf("aerospike_index_integer_create() returned %d - %s", err.code, err.message);
+        return false;
+    }
 
     // Create records
     std::cout << "=================================================================================" << std::endl;
@@ -102,22 +95,6 @@ int main() {
     }
     std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
 
-    // Read the records by bin value
-    std::cout << "=================================================================================" << std::endl;
-    std::cout << "SEARCH BY BIN VALUE" << std::endl;
-    start = get_time_in_us();
-    // Prepare the query
-    as_query query;
-    as_query_init(&query, ns, set); // Namespace: "test", Set: "books"
-    as_query_where_inita(&query, 1); // Number of conditions
-    as_query_where(&query, "author", as_string_equals("author100")); // Condition: "author" = "author100"
-
-    // Execute the query
-    if (aerospike_query_foreach(&as, &err, nullptr, &query, query_callback, nullptr) != AEROSPIKE_OK) {
-        std::cerr << "Error reading record: " << err.message << std::endl;
-    }
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
-
     // Read the records by primary key
     std::cout << "=================================================================================" << std::endl;
     std::cout << "SEARCH BY PRIMARY KEY" << std::endl;
@@ -131,6 +108,24 @@ int main() {
         std::cerr << "Error reading record: " << err.message << std::endl;
     }
     std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+
+    // Read the records by bin value
+    std::cout << "=================================================================================" << std::endl;
+    std::cout << "SEARCH BY BIN VALUE" << std::endl;
+    start = get_time_in_us();
+    // Prepare the query
+    as_query query;
+    as_exp* exp = get_exp_filter_author_and_title("author100", "title100");
+    as_policy_query policy;
+    policy.base.filter_exp = exp;
+    as_query_init(&query, ns, set); // Namespace: "test", Set: "books"
+
+    // Execute the query
+    if (aerospike_query_foreach(&as, &err, &policy, &query, query_callback, nullptr) != AEROSPIKE_OK) {
+        std::cerr << "Error reading record: " << err.message << std::endl;
+    }
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    as_query_destroy(&query);
 
     // Delete the records
     std::cout << "=================================================================================" << std::endl;
