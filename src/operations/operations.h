@@ -51,6 +51,13 @@ void search_by_bin_value_with_range
     const uint16_t published_year_start,
     const uint16_t published_year_end
 );
+void search_by_map_value
+(
+    aerospike* as,
+    const char* ns,
+    const char* set,
+    const char* serial_no
+);
 void delete_records
 (
     aerospike* as,

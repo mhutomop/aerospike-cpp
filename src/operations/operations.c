@@ -263,6 +263,35 @@ void search_by_bin_value_with_range
     as_query_destroy(&query);
 }
 
+void search_by_map_value
+(
+    aerospike* as,
+    const char* ns,
+    const char* set,
+    const char* serial_no
+)
+{
+    as_error err;
+
+    printf("SEARCH BY MAP VALUE\n");
+    
+    // Prepare the query
+    as_query query;
+    as_exp_build(predexp, as_exp_cmp_eq(
+        as_exp_map_get_by_key(NULL, AS_MAP_RETURN_VALUE, AS_EXP_TYPE_STR, as_exp_str("serialNo"), as_exp_bin_map("details")),
+        as_exp_str(serial_no)
+    ));
+    as_policy_query policy;
+    policy.base.filter_exp = predexp;
+    as_query_init(&query, ns, set); // Namespace: "test", Set: "books"
+
+    // Execute the query
+    if (aerospike_query_foreach(as, &err, &policy, &query, query_callback, NULL) != AEROSPIKE_OK) {
+        fprintf(stderr, "Error reading record: %s\n", err.message);
+    }
+    as_query_destroy(&query);
+}
+
 void delete_records
 (
     aerospike* as,

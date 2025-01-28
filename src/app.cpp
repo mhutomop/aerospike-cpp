@@ -1,6 +1,7 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <thread>
 #include "operations/operations.h"
 
 int64_t get_time_in_us() {
@@ -41,31 +42,37 @@ int main() {
     std::cout << "=================================================================================" << std::endl;
     auto start = get_time_in_us();
     create_records(&as, ns, set, number_of_records, record_keys.data(), records.data());
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
     // Read the records by primary key
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();
     search_by_primary_key(&as, ns, set, "book100");
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
     // Read the records by multiple bin value
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();
     search_by_multiple_bin_value(&as, ns, set, "author100", "title100");
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
     // Read the records by bin value with range
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();
     search_by_bin_value_with_range(&as, ns, set, 2000, 2005);
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
+
+    // Read the records by map value
+    std::cout << "=================================================================================" << std::endl;
+    start = get_time_in_us();
+    search_by_map_value(&as, ns, set, "no_100");
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
     // Delete the records
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();
     delete_records(&as, number_of_records, record_keys.data(), records.data());
-    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
     // Cleanup
     aerospike_close(&as, &err);
