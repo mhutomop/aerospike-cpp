@@ -44,6 +44,12 @@ int main() {
     create_records(&as, ns, set, number_of_records, record_keys.data(), records.data());
     std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
 
+    // Update a record by primary key
+    std::cout << "=================================================================================" << std::endl;
+    start = get_time_in_us();
+    update_by_primary_key(&as, ns, set, "book100", "title10o");
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
+
     // Read the records by primary key
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();

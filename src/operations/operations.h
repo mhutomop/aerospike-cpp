@@ -28,6 +28,14 @@ void create_records
     as_key* record_keys,
     as_record* records
 );
+void update_by_primary_key
+(
+    aerospike* as,
+    const char* ns,
+    const char* set,
+    const char* key,
+    const char* title
+);
 void search_by_primary_key
 (
     aerospike* as,

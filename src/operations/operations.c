@@ -182,6 +182,30 @@ void create_records
     }
 }
 
+void update_by_primary_key
+(
+    aerospike* as,
+    const char* ns,
+    const char* set,
+    const char* key,
+    const char* title
+)
+{
+    as_error err;
+
+    printf("UPDATE BY PRIMARY KEY\n");
+    as_key record_key;
+    as_key_init(&record_key, ns, set, key);
+    as_record read_record;
+    as_record_inita(&read_record, 1);
+    as_record_set_str(&read_record, "title", title); // Update 'title' bin
+    if (aerospike_key_put(as, &err, NULL, &record_key, &read_record) == AEROSPIKE_OK) {
+        printf("Record update successfully. Title value: %s\n", as_record_get_str(&read_record, "title"));
+    } else {
+        fprintf(stderr, "Error reading record: %s\n", err.message);
+    }
+}
+
 void search_by_primary_key
 (
     aerospike* as,
