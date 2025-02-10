@@ -20,6 +20,12 @@ int main() {
     create_records(book_collection, number_of_records);
     std::cout << "Time: " + std::to_string(get_time_in_us() - start) << std::endl;
 
+    // Update a record by primary key
+    std::cout << "=================================================================================" << std::endl;
+    start = get_time_in_us();
+    update_by_primary_key(book_collection, "book100", "title10o");
+    std::cout << "Time: " + std::to_string(get_time_in_us() - start) << " us" << std::endl;
+
     // Read the records by primary key
     std::cout << "=================================================================================" << std::endl;
     start = get_time_in_us();
